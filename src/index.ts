@@ -17,7 +17,8 @@ interface ValidationObject {
 }
 
 function retrieveParametersValue(parameters?: Record<string, unknown>, property?: string): Record<string, unknown> | null {
-    let schemaFromParameters: Record<string, unknown> | null = null; if (
+    let schemaFromParameters: Record<string, unknown> | null = null; 
+    if (
         parameters &&
         typeof parameters === 'object'
     ) {
@@ -93,12 +94,10 @@ export function validatorJson(
             return next();
         }
         const values = buildValueToValidate(schema, req);
-        Log.info('validating %O', values); const ajv = new Ajv(options)
+        Log.info('validating %O', values); 
+        const ajv = new Ajv(options)
         const validate = ajv.compile(schema.valueOf())
         const valid = validate(values)
-        Logger.log('SHCMEA', schema)
-        Logger.log('SHCMEA', schema.valueOf())
-        Logger.log('values', values)
         if (!valid) {
             Log.error('Invalid request for %s', req.originalUrl);
             const { errors } = validate
