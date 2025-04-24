@@ -1,0 +1,53 @@
+{
+  "name": "@novice1/validator-json",
+  "private": false,
+  "version": "0.1.0",
+  "description": "Ajv JSON schema validator to use with @novice1/routing.",
+  "main": "index.js",
+  "scripts": {
+    "doc": "typedoc",
+    "build": "tsc",
+    "lint": "eslint .",
+    "test": "env TS_NODE_FILES=true kaukau --require ts-node/register --config kaukau-src.mjs",
+    "testlib": "kaukau --config kaukau-lib.mjs"
+  },
+  "keywords": [
+    "express",
+    "middleware",
+    "ajv",
+    "validator"
+  ],
+  "homepage": "https://kisiwu.github.io/novice-validator-json/latest/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kisiwu/novice-validator-json.git"
+  },
+  "author": "demingongo",
+  "license": "MIT",
+  "dependencies": {
+    "@novice1/logger": "^1.6.0",
+    "ajv": "^8.17.1",
+    "tslib": "^2.8.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.25.1",
+    "@novice1/routing": "^2.0.0",
+    "@stylistic/eslint-plugin-js": "^4.2.0",
+    "@types/chai": "^5.2.1",
+    "@types/express": "^5.0.1",
+    "@types/extend": "^3.0.4",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.14.1",
+    "@typescript-eslint/eslint-plugin": "^8.31.0",
+    "@typescript-eslint/parser": "^8.31.0",
+    "chai": "^4.5.0",
+    "eslint": "^9.25.1",
+    "eslint-plugin-mocha": "^10.5.0",
+    "express": "^5.1.0",
+    "kaukau": "^4.1.5",
+    "ts-node": "^10.9.2",
+    "typedoc": "^0.28.3",
+    "typescript": "^5.8.3"
+  }
+}
