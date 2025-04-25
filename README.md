@@ -1,8 +1,8 @@
 # @novice1/validator-json
 
-[Ajv](https://www.npmjs.com/package/ajv) JSON schema validator () to use with [@novice1/routing](https://www.npmjs.com/package/@novice1/routing).
+JSON schema validator to use with [@novice1/routing](https://www.npmjs.com/package/@novice1/routing).
 
-It provides a middleware that can validate the properties `params`, `body`, `query`, `headers`, `cookies` and `files` from the request using [Ajv](https://www.npmjs.com/package/ajv) validation.
+It provides a middleware that can validates `req.params`, `req.body`, `req.query`, `req.headers`, `req.cookies` and `req.files` against a schema using [Ajv](https://www.npmjs.com/package/ajv).
 
 ## Installation
 
@@ -12,21 +12,124 @@ npm install @novice1/validator-json
 
 ## Usage
 
-Example:
+### With Typescript interfaces
 
-Using `fluent-json-schema` to create the JSON schema (draft-07) is optional but convenient.
+Typescript interfaces are optional but convenient as they can help defining the JSON schema and be used in the controller.
 
-```js
-const router = require('@novice1/routing')()
-const S = require('fluent-json-schema')
-const { validatorJson } = require('@novice1/validator-json')
-const express = require('express')
+```ts
+import routing from '@novice1/routing'
+import express from 'express'
+import { validatorJson } from '@novice1/validator-json'
+import { JSONSchemaType } from 'ajv'
+
+const router = routing()
 
 /**
- * It will validate the  properties "params", "body", "query", "headers", "cookies" and "files"
- * from the request with the route parameters.
- *
+ * Enable JSON validation on: 
+ * - req.params
+ * - req.body
+ * - req.query
+ * - req.headers
+ * - req.cookies
+ * - req.files
+ * 
+ * for that router
  */
+router.setValidators(
+  validatorJson(
+    // ajv options
+    { allErrors: true },
+    // middleware in case validation fails
+    function onerror(err, req, res, next) {
+      res.status(400).json(err)
+    }
+  )
+)
+
+// interface for "req.body"
+interface PostBody {
+    name: string
+}
+
+// JSON schema for "req.body"
+const bodySchema: JSONSchemaType<PostBody> = {
+    type: 'object',
+    properties: {
+        name: {
+            type: 'string',
+            minLength: 1
+        }
+    },
+    required: ['name'],
+    additionalProperties: false
+}
+
+router.post(
+  {
+    name: 'Post app',
+    path: '/app',
+
+    // the schema to validate
+    parameters: {
+      type: 'object',
+      properties: {
+          body: bodySchema
+      },
+      required: ['body'],
+      additionalProperties: true
+    },
+
+    // body parser
+    preValidators: express.json()
+  },
+  function (req, res) {
+    res.json(req.body.name)
+  }
+)
+
+// interface for "req.query"
+interface GetQuery {
+    version?: string
+}
+
+// JSON schema for "req.query"
+const querySchema: JSONSchemaType<GetQuery> = {
+    type: 'object',
+    properties: {
+        version: {
+            type: 'string',
+            description: 'version number',
+            enum: ['1','2','3'],
+            default: '2',
+            examples: ['2'],
+            nullable: true
+        }
+    }
+}
+
+router.get(
+  {
+    name: 'Main app',
+    path: '/app',
+    parameters: {
+      // the schema to validate
+      query: querySchema
+    }
+  },
+  function (req, res) {
+    res.json(req.query.version)
+  }
+)
+```
+
+### Using `fluent-json-schema`
+
+```js
+import routing from '@novice1/routing'
+import express from 'express'
+import { S } from 'fluent-json-schema'
+import { validatorJson } from '@novice1/validator-json'
+
 router.setValidators(
   validatorJson(
     // ajv options
@@ -80,13 +183,13 @@ router.get(
 )
 ```
 
-## Good practices
+## Best practices
 
-### ValidationProperty
+### Validation property
 
-Too keep the parameters of your routes clean, you should define your schemas in a property of the route `parameters`.
+Too keep your schemas "isolated" from other properties of `parameters`, you should define one property that will contain those schemas.
 
-You just need to initiate the validator with the name of the property:
+To do that you just need to initiate the validator with the name of the property:
 
 ```ts
 router.setValidators(
@@ -108,20 +211,23 @@ router.get(
   {
     name: 'Main app',
     path: '/app',
+    // parameters
     parameters: {
       // property 'jsonSchemas'
       jsonSchemas: {
-        query: S.object()
-          .prop(
-            'version',
-            S.string()
-              .description('version number')
-              .maxLength(1)
-              .enum(['1', '2', '3'])
-              .default('2')
-              .examples(['2'])
-          )
-          .valueOf()
+        query: {
+          type: 'object',
+          properties: {
+            version: {
+              type: 'string',
+              description: 'version number',
+              enum: ['1','2','3'],
+              default: '2',
+              examples: ['2'],
+              nullable: true
+            }
+          }
+        }
       }
     }
   },
