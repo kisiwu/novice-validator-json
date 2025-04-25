@@ -187,7 +187,7 @@ router.get(
 
 ### Validation property
 
-Too keep your schemas "isolated" from other properties of `parameters`, you should define one property that will contain those schemas.
+To keep your schemas "isolated" from other properties of `parameters`, you should define one property that will contain those schemas.
 
 To do that you just need to initiate the validator with the name of the property:
 
