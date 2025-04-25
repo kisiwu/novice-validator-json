@@ -2,7 +2,7 @@
 
 JSON schema validator to use with [@novice1/routing](https://www.npmjs.com/package/@novice1/routing).
 
-It provides a middleware that can validates `req.params`, `req.body`, `req.query`, `req.headers`, `req.cookies` and `req.files` against a schema using [Ajv](https://www.npmjs.com/package/ajv).
+It provides a middleware that can validate `req.params`, `req.body`, `req.query`, `req.headers`, `req.cookies` and `req.files` against a schema using [Ajv](https://www.npmjs.com/package/ajv).
 
 ## Installation
 
