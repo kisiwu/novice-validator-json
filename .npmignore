@@ -2,6 +2,7 @@
 src
 docs
 /test
+/scripts
 /types/files.d.ts
 typedoc.json
 private

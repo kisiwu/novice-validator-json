@@ -1,12 +1,12 @@
 {
   "name": "@novice1/validator-json",
   "private": false,
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Ajv JSON schema validator to use with @novice1/routing.",
   "main": "index.js",
   "scripts": {
     "doc": "typedoc",
-    "build": "tsc",
+    "build": "tsc && node ./scripts/buildDT.mjs",
     "lint": "eslint .",
     "test": "env TS_NODE_FILES=true kaukau --require ts-node/register --config kaukau-src.mjs",
     "testlib": "kaukau --config kaukau-lib.mjs"
@@ -32,7 +32,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.25.1",
-    "@novice1/routing": "^2.0.0",
+    "@novice1/routing": "^2.0.1",
     "@stylistic/eslint-plugin-js": "^4.2.0",
     "@types/chai": "^5.2.1",
     "@types/express": "^5.0.1",

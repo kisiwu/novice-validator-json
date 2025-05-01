@@ -1,6 +1,11 @@
 import { validatorJson } from '../../src/index';
 import routing from '@novice1/routing';
+import Logger from '@novice1/logger';
 import { expect } from 'chai';
+
+const onerror: routing.ErrorRequestHandler<unknown, { error: unknown }> = (err, _req, res) => {
+  res.status(400).json({error: err})
+}
 
 describe('Set validator', () => {
 
@@ -10,7 +15,11 @@ describe('Set validator', () => {
       path: '/post',
       name: 'Post',
       description: 'Post a comment',
-      tags: 'Comments'
+      tags: 'Comments',
+      parameters: {
+        onerror,
+        validatorJsonOptions: { logger: Logger }
+      }
     }, function postToDo(req, res) {
       res.json(req.meta)
     });

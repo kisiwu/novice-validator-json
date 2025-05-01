@@ -95,7 +95,7 @@ export function validatorJson(
         }
         const values = buildValueToValidate(schema, req);
         Log.info('validating %O', values); 
-        const ajv = new Ajv(options)
+        const ajv = new Ajv(req.meta.parameters?.validatorJsonOptions ? req.meta.parameters?.validatorJsonOptions : options)
         const validate = ajv.compile(schema.valueOf())
         const valid = validate(values)
         if (!valid) {

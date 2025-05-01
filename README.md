@@ -264,6 +264,50 @@ router.get(
 )
 ```
 
+### Overrides
+
+It is possible to override the validator's options and the error handler for each route.
+
+```ts
+import routing from '@novice1/routing'
+import Logger from '@novice1/logger'
+import { Options } from 'ajv'
+
+const router = routing()
+
+router.setValidators(
+  validatorJson(
+    // default options
+    { allErrors: true },
+    // default error handler
+    function onerror(err, req, res, next) {
+      res.status(400).json(err)
+    }
+  )
+)
+
+const onerror: routing.ErrorRequestHandler = (err, req, res) => {
+  res.status(400).json(err)
+}
+
+const validatorJsonOptions: Options = { logger: Logger }
+
+routing.get(
+  {
+    path: '/override',
+    parameters: {
+      // overrides
+      onerror, 
+      validatorJsonOptions
+
+    },
+  },
+  function (req, res) {
+    // ...
+  }
+)
+```
+
 ## Best practices
 
 ### Validation property
