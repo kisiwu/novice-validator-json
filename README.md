@@ -83,7 +83,7 @@ router.post(
     preValidators: express.json()
   },
   function (req, res) {
-    res.json(req.body.name)
+    res.json({ name: req.body.name })
   }
 )
 
@@ -117,14 +117,95 @@ router.get(
     }
   },
   function (req, res) {
-    res.json(req.query.version)
+    res.send(req.query.version)
   }
 )
 ```
 
-### Using `fluent-json-schema`
+### With `@sinclair/typebox`
 
-```js
+```ts
+import routing from '@novice1/routing'
+import express from 'express'
+import { validatorJson } from '@novice1/validator-json'
+import { Type, Static } from '@sinclair/typebox'
+
+const router = routing()
+
+router.setValidators(
+  validatorJson(
+    // ajv options
+    { allErrors: true },
+    // middleware in case validation fails
+    function onerror(err, req, res, next) {
+      res.status(400).json(err)
+    }
+  )
+)
+
+// JSON schema for "req.body"
+const bodySchema = Type.Object({                
+  name: Type.String()                            
+})
+
+// type for "req.body"
+type PostBody = Static<typeof bodySchema>
+
+router.post(
+  {
+    name: 'Post app',
+    path: '/app',
+
+    // the schema to validate
+    parameters: Type.Object({
+      body: bodySchema
+    }),
+
+    // body parser
+    preValidators: express.json()
+  },
+  function (req: routing.Request<unknown, { name: string }, PostBody>, res) {
+    res.json({ name: req.body.name })
+  }
+)
+
+// JSON schema for "req.query"
+const querySchema = Type.Object({
+    version: Type.Optional(
+      Type.Union([
+        Type.Literal('1'),
+        Type.Literal('2'),
+        Type.Literal('3')
+      ], {
+        type: 'string',
+        default: '2',
+        description: 'version number',
+        examples: ['2']
+      })
+    )                    
+})
+
+// type for "req.query"
+type GetQuery = Static<typeof querySchema>
+
+router.get(
+  {
+    name: 'Main app',
+    path: '/app',
+    parameters: {
+      // the schema to validate
+      query: querySchema
+    }
+  },
+  function (req: routing.Request<unknown, string, unknown, GetQuery>, res) {
+    res.send(req.query.version)
+  }
+)
+```
+
+### With `fluent-json-schema`
+
+```ts
 import routing from '@novice1/routing'
 import express from 'express'
 import { S } from 'fluent-json-schema'
@@ -155,7 +236,7 @@ router.post(
     preValidators: express.json()
   },
   function (req, res) {
-    res.json(req.body.name)
+    res.json({ name: req.body.name })
   }
 )
 
@@ -178,7 +259,7 @@ router.get(
     }
   },
   function (req, res) {
-    res.json(req.query.version)
+    res.send(req.query.version)
   }
 )
 ```
@@ -199,7 +280,7 @@ router.setValidators(
     // middleware in case validation fails
     undefined,
     // name of the property in 'parameters'
-    'jsonSchemas'
+    'schema'
   )
 )
 ```
@@ -213,8 +294,8 @@ router.get(
     path: '/app',
     // parameters
     parameters: {
-      // property 'jsonSchemas'
-      jsonSchemas: {
+      // property 'schema'
+      schema: {
         query: {
           type: 'object',
           properties: {
