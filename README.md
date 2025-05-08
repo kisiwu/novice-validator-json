@@ -12,17 +12,15 @@ npm install @novice1/validator-json
 
 ## Usage
 
-### With Typescript interfaces
-
-Typescript interfaces are optional but convenient as they can help defining the JSON schema and be used in the controller.
+### Set validator
 
 ```ts
-import routing from '@novice1/routing'
-import express from 'express'
-import { validatorJson } from '@novice1/validator-json'
-import { JSONSchemaType } from 'ajv'
+// router.ts
 
-const router = routing()
+import routing from '@novice1/routing'
+import { validatorJson } from '@novice1/validator-json'
+
+export default const router = routing()
 
 /**
  * Enable JSON validation on: 
@@ -38,21 +36,31 @@ const router = routing()
 router.setValidators(
   validatorJson(
     // ajv options
-    { allErrors: true },
+    { allErrors: true, keywords: ['meta', 'discriminator'] },
     // middleware in case validation fails
     function onerror(err, req, res, next) {
       res.status(400).json(err)
     }
   )
 )
+```
+
+### With Typescript interfaces
+
+Typescript interfaces are optional but convenient as they can help defining the JSON schema and be used in the controller.
+
+```ts
+import express from 'express'
+import { JSONSchemaType } from 'ajv'
+import router from './router'
 
 // interface for "req.body"
-interface PostBody {
+interface BodyItem {
     name: string
 }
 
 // JSON schema for "req.body"
-const bodySchema: JSONSchemaType<PostBody> = {
+const bodySchema: JSONSchemaType<BodyItem> = {
     type: 'object',
     properties: {
         name: {
@@ -66,8 +74,8 @@ const bodySchema: JSONSchemaType<PostBody> = {
 
 router.post(
   {
-    name: 'Post app',
-    path: '/app',
+    name: 'Post item',
+    path: '/items',
 
     // the schema to validate
     parameters: {
@@ -82,7 +90,7 @@ router.post(
     // body parser
     preValidators: express.json()
   },
-  function (req, res) {
+  function (req: routing.Request<unknown, { name: string }, BodyItem>, res) {
     res.json({ name: req.body.name })
   }
 )
@@ -125,36 +133,23 @@ router.get(
 ### With `@sinclair/typebox`
 
 ```ts
-import routing from '@novice1/routing'
 import express from 'express'
-import { validatorJson } from '@novice1/validator-json'
 import { Type, Static } from '@sinclair/typebox'
+import routing from '@novice1/routing'
+import router from './router'
 
-const router = routing()
-
-router.setValidators(
-  validatorJson(
-    // ajv options
-    { allErrors: true },
-    // middleware in case validation fails
-    function onerror(err, req, res, next) {
-      res.status(400).json(err)
-    }
-  )
-)
-
-// JSON schema for "req.body"
+// schema for "req.body"
 const bodySchema = Type.Object({                
   name: Type.String()                            
 })
 
 // type for "req.body"
-type PostBody = Static<typeof bodySchema>
+type BodyItem = Static<typeof bodySchema>
 
 router.post(
   {
-    name: 'Post app',
-    path: '/app',
+    name: 'Post item',
+    path: '/items',
 
     // the schema to validate
     parameters: Type.Object({
@@ -164,12 +159,12 @@ router.post(
     // body parser
     preValidators: express.json()
   },
-  function (req: routing.Request<unknown, { name: string }, PostBody>, res) {
+  function (req: routing.Request<unknown, { name: string }, BodyItem>, res) {
     res.json({ name: req.body.name })
   }
 )
 
-// JSON schema for "req.query"
+// schema for "req.query"
 const querySchema = Type.Object({
     version: Type.Optional(
       Type.Union([
@@ -206,26 +201,15 @@ router.get(
 ### With `fluent-json-schema`
 
 ```ts
-import routing from '@novice1/routing'
 import express from 'express'
 import { S } from 'fluent-json-schema'
-import { validatorJson } from '@novice1/validator-json'
-
-router.setValidators(
-  validatorJson(
-    // ajv options
-    { allErrors: true },
-    // middleware in case validation fails
-    function onerror(err, req, res, next) {
-      res.status(400).json(err)
-    }
-  )
-)
+import routing from '@novice1/routing'
+import router from './router'
 
 router.post(
   {
-    name: 'Post app',
-    path: '/app',
+    name: 'Post item',
+    path: '/items',
 
     parameters: S.object()
       .prop('body', S.object().prop('name', S.string().required().minLength(1)))
@@ -266,10 +250,11 @@ router.get(
 
 ### Overrides
 
-It is possible to override the validator's options and the error handler for each route.
+Override the validator's options and the error handler for a route.
 
 ```ts
 import routing from '@novice1/routing'
+import { validatorJson } from '@novice1/validator-json'
 import Logger from '@novice1/logger'
 import { Options } from 'ajv'
 
@@ -278,7 +263,7 @@ const router = routing()
 router.setValidators(
   validatorJson(
     // default options
-    { allErrors: true },
+    { allErrors: true, keywords: ['meta', 'discriminator'] },
     // default error handler
     function onerror(err, req, res, next) {
       res.status(400).json(err)
@@ -290,9 +275,9 @@ const onerror: routing.ErrorRequestHandler = (err, req, res) => {
   res.status(400).json(err)
 }
 
-const validatorJsonOptions: Options = { logger: Logger }
+const validatorJsonOptions: Options = { logger: Logger, allErrors: false }
 
-routing.get(
+router.get(
   {
     path: '/override',
     parameters: {
