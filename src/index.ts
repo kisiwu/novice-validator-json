@@ -17,13 +17,24 @@ interface ValidationObject {
 }
 
 function retrieveParametersValue(parameters?: Record<string, unknown>, property?: string): Record<string, unknown> | null {
-    let schemaFromParameters: Record<string, unknown> | null = null; 
+    let schemaFromParameters: Record<string, unknown> | null = null;
     if (
         parameters &&
         typeof parameters === 'object'
     ) {
-        schemaFromParameters = parameters; if (property && typeof property === 'string') {
-            const subParameters = schemaFromParameters?.[property];
+        schemaFromParameters = parameters;
+        if (property && typeof property === 'string') {
+            // retrieve nested object property
+            const subParameters = property.replace(/\[([^[\]]*)\]/g, '.$1.')
+                .split('.')
+                .filter((t) => t !== '')
+                .reduce((prev: unknown, curr) => {
+                    if (prev && typeof prev === 'object' && curr in prev) {
+                        const tmp: unknown = prev[curr as keyof typeof prev]
+                        return tmp
+                    }
+                    return
+                }, schemaFromParameters);
             if (
                 subParameters &&
                 typeof subParameters === 'object' &&
@@ -34,7 +45,8 @@ function retrieveParametersValue(parameters?: Record<string, unknown>, property?
                 schemaFromParameters = null;
             }
         }
-    } return schemaFromParameters;
+    } 
+    return schemaFromParameters;
 }
 
 function retrieveSchema(parameters?: Record<string, unknown>, property?: string): object | null {
@@ -85,10 +97,10 @@ function buildValueToValidate(schema: object, req: Request): ValidationObject {
 export function validatorJson(
     options?: Options,
     onerror?: ErrorRequestHandler,
-    validationProperty?: string
+    schemaProperty?: string
 ): RequestHandler {
     return function validatorJsonRequestHandler(req, res, next) {
-        const schema = retrieveSchema(req.meta?.parameters, validationProperty);
+        const schema = retrieveSchema(req.meta?.parameters, schemaProperty);
         if (!schema) {
             Log.silly('no schema to validate');
             return next();
