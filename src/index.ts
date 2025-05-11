@@ -4,6 +4,7 @@ import { ParsedQs } from 'qs';
 import { ParamsDictionary } from 'express-serve-static-core';
 import { IncomingHttpHeaders } from 'http';
 import Ajv, { Options } from 'ajv'
+import { SomeJSONSchema } from 'ajv/dist/types/json-schema';
 
 const Log = Logger.debugger('@novice1/validator-json'); const PARAMETERS_PROPS = ['params', 'body', 'query', 'headers', 'cookies', 'files'];
 
@@ -92,6 +93,15 @@ function buildValueToValidate(schema: object, req: Request): ValidationObject {
         }
     }
     return r;
+}
+
+export type ValidatorJsonSchema = SomeJSONSchema | {
+    body?: SomeJSONSchema | { [x: string]: SomeJSONSchema }
+    headers?: SomeJSONSchema | { [x: string]: SomeJSONSchema }
+    cookies?: SomeJSONSchema | { [x: string]: SomeJSONSchema }
+    params?: SomeJSONSchema | { [x: string]: SomeJSONSchema }
+    query?: SomeJSONSchema | { [x: string]: SomeJSONSchema }
+    files?: SomeJSONSchema | { [x: string]: SomeJSONSchema }
 }
 
 export function validatorJson(
