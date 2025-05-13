@@ -109,6 +109,7 @@ export function validatorJson(
     onerror?: ErrorRequestHandler,
     schemaProperty?: string
 ): RequestHandler {
+    const defaultAjv = new Ajv(options)
     return function validatorJsonRequestHandler(req, res, next) {
         const schema = retrieveSchema(req.meta?.parameters, schemaProperty);
         if (!schema) {
@@ -117,7 +118,7 @@ export function validatorJson(
         }
         const values = buildValueToValidate(schema, req);
         Log.info('validating %O', values); 
-        const ajv = new Ajv(req.meta.parameters?.validatorJsonOptions ? req.meta.parameters?.validatorJsonOptions : options)
+        const ajv = req.meta.parameters?.validatorJsonOptions ? new Ajv(req.meta.parameters?.validatorJsonOptions) : defaultAjv
         const validate = ajv.compile(schema.valueOf())
         const valid = validate(values)
         if (!valid) {
